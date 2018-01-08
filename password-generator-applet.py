@@ -10,22 +10,28 @@ from gi.repository import Gtk, Gdk, MatePanelApplet
 
 class AppletContents(Gtk.Box):
 
-    def __init__(self, default_length=8):
+    def __init__(self, applet, default_length=8):
         Gtk.Box.__init__(self)
 
         self.length_selector_is_open = False
+        self.applet = applet
         self.selected_length = default_length
         self.parameter_entry = Gtk.Entry()
         self.parameter_entry.set_placeholder_text('Parameter')
         self.parameter_entry.connect('activate', self.enter_clicked)
+        self.parameter_entry.connect('button-press-event', self.capture_focus)
         self.secret_entry = Gtk.Entry(visibility=False)
         self.secret_entry.set_placeholder_text('Master Password')
         self.secret_entry.connect('activate', self.enter_clicked)
+        self.secret_entry.connect('button-press-event', self.capture_focus)
         self.length_button = Gtk.Button('{:d}'.format(self.selected_length))
         self.length_button.connect('clicked', self.open_length_slider)
         self.pack_start(self.parameter_entry, True, True, 0)
         self.pack_start(self.secret_entry, True, True, 0)
         self.pack_start(self.length_button, False, False, 0)
+
+    def capture_focus(self, widget, event):
+        self.applet.request_focus(event.time)
 
     def enter_clicked(self, widget):
         parameter = self.parameter_entry.get_text()
@@ -82,7 +88,7 @@ def applet_fill(applet):
     # TODO: get default length from settings
     default_length = 10
 
-    applet.add(AppletContents())
+    applet.add(AppletContents(applet))
     applet.set_background_widget(applet)
     applet.show_all()
     applet.set_tooltip_text('Enter parameter and secret and press enter to generate password of selected length in the clipboard')
