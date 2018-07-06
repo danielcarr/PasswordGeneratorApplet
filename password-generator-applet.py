@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#! /usr/bin/env python3
 
 import base64
 import hmac
@@ -19,19 +19,33 @@ class AppletContents(Gtk.Box):
         self.parameter_entry = Gtk.Entry()
         self.parameter_entry.set_placeholder_text('Parameter')
         self.parameter_entry.connect('activate', self.enter_clicked)
+        self.parameter_entry.connect('key-press-event', self.key_press_received)
         self.parameter_entry.connect('button-press-event', self.capture_focus)
         self.secret_entry = Gtk.Entry(visibility=False)
         self.secret_entry.set_placeholder_text('Master Password')
         self.secret_entry.connect('activate', self.enter_clicked)
+        self.secret_entry.connect('key-press-event', self.key_press_received)
         self.secret_entry.connect('button-press-event', self.capture_focus)
         self.length_button = Gtk.Button('{:d}'.format(self.selected_length))
         self.length_button.connect('clicked', self.open_length_slider)
+        self.length_button.connect('key-press-event', self.key_press_received)
         self.pack_start(self.parameter_entry, True, True, 0)
         self.pack_start(self.secret_entry, True, True, 0)
         self.pack_start(self.length_button, False, False, 0)
 
     def capture_focus(self, widget, event):
         self.applet.request_focus(event.time)
+
+    def key_press_received(self, widget, event):
+        if event.keyval == Gdk.KEY_Tab:
+            if widget is self.parameter_entry:
+                self.secret_entry.grab_focus()
+                return True
+            elif widget is self.secret_entry:
+                self.open_length_slider(self.length_button)
+                self.set_focus_child(None)
+                return True
+        return False
 
     def enter_clicked(self, widget):
         parameter = self.parameter_entry.get_text()
